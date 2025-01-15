@@ -36,7 +36,6 @@
 
   class YouTubeKaraokePlugin {
     constructor(config = {}) {
-      this.instanceId = "karaoke-" + Math.random().toString(36).substr(2, 9);
       this.config = {
         colors: {
           primaryColor: config.colors?.primaryColor || "#ff69b4",
@@ -61,6 +60,7 @@
             "0 5px 15px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(255, 105, 180, 0.4), inset 0 0 60px rgba(255, 242, 0, 0.1)",
         },
       };
+      this.instanceId = this.config.containerId; // "karaoke-" + Math.random().toString(36).substr(2, 9);
 
       this.currentLineIndex = -1;
       this.init();
