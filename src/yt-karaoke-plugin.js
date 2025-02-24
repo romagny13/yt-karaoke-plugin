@@ -36,7 +36,8 @@
 
   class YouTubeKaraokePlugin {
     constructor(config = {}) {
-      this.config = {
+      this.version = "1.1.0";
+      this._config = {
         colors: {
           primaryColor: config.colors?.primaryColor || "#ff69b4",
           secondaryColor: config.colors?.secondaryColor || "#ff1493",
@@ -60,7 +61,7 @@
             "0 5px 15px rgba(0, 0, 0, 0.5), 0 10px 20px rgba(255, 105, 180, 0.4), inset 0 0 60px rgba(255, 242, 0, 0.1)",
         },
       };
-      this.instanceId = this.config.containerId; // "karaoke-" + Math.random().toString(36).substr(2, 9);
+      this.instanceId = this._config.containerId; // "karaoke-" + Math.random().toString(36).substr(2, 9);
 
       this.currentLineIndex = -1;
       this.init();
@@ -83,19 +84,19 @@
         const style = document.createElement("style");
         style.id = styleId;
         style.textContent = `
-          @import url('https://fonts.googleapis.com/css2?family=${this.config.font.replace(
+          @import url('https://fonts.googleapis.com/css2?family=${this._config.font.replace(
             " ",
             "+"
           )}:wght@400;700&display=swap');
 
           #${this.instanceId} .karaoke {
-            --romantic-primary: ${this.config.colors.primaryColor};
-            --romantic-secondary: ${this.config.colors.secondaryColor};
-            --romantic-accent: ${this.config.colors.accentColor};
-            --romantic-bg: ${this.config.colors.backgroundColor};
-            --romantic-text: ${this.config.colors.textColor};
-            --viral-glow1: ${this.config.colors.glowColor1};
-            --viral-glow2: ${this.config.colors.glowColor2};
+            --romantic-primary: ${this._config.colors.primaryColor};
+            --romantic-secondary: ${this._config.colors.secondaryColor};
+            --romantic-accent: ${this._config.colors.accentColor};
+            --romantic-bg: ${this._config.colors.backgroundColor};
+            --romantic-text: ${this._config.colors.textColor};
+            --viral-glow1: ${this._config.colors.glowColor1};
+            --viral-glow2: ${this._config.colors.glowColor2};
 
             height: 0;
             padding: 0;
@@ -104,9 +105,9 @@
             overflow: hidden;
             background: linear-gradient(
               135deg,
-              ${this.config.colors.backgroundColor}f2 0%,
-              ${this.config.colors.backgroundColor}e6 50%,
-              ${this.config.colors.backgroundColor}f2 100%
+              ${this._config.colors.backgroundColor}f2 0%,
+              ${this._config.colors.backgroundColor}e6 50%,
+              ${this._config.colors.backgroundColor}f2 100%
             );
             border-radius: 30px;
             border: 1px solid var(--romantic-primary);
@@ -123,13 +124,13 @@
             animation: appearWithLove-${
               this.instanceId
             } 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: ${this.config.shadows.defaultBoxShadow};
+            box-shadow: ${this._config.shadows.defaultBoxShadow};
             transition: all 0.5s ease;
           }
 
           #${this.instanceId} .karaoke.expand:hover {
             transform: translateY(-5px) scale(1.01);
-            box-shadow: ${this.config.shadows.hoverBoxShadow};
+            box-shadow: ${this._config.shadows.hoverBoxShadow};
           }
 
           #${this.instanceId} .karaoke.expand:hover::before {
@@ -159,7 +160,7 @@
           }
 
           #${this.instanceId} .karaoke.expand::after {
-            content: '${this.config.floatingSymbol}';
+            content: '${this._config.floatingSymbol}';
             position: absolute;
             color: var(--romantic-primary);
             font-size: 1.5rem;
@@ -170,7 +171,7 @@
 
           #${this.instanceId} .karaoke.expand > div::before,
           #${this.instanceId} .karaoke.expand > div::after {
-            content: '${this.config.floatingSymbol}';
+            content: '${this._config.floatingSymbol}';
             position: absolute;
             color: var(--viral-glow1);
             font-size: 1.2rem;
@@ -189,7 +190,7 @@
           }
 
           #${this.instanceId} .line {
-            font-family: '${this.config.font}', cursive;
+            font-family: '${this._config.font}', cursive;
             font-size: 2.2rem;
             color: var(--romantic-text);
             text-align: center;
@@ -328,10 +329,10 @@
     }
 
     createStructure() {
-      const container = document.getElementById(this.config.containerId);
+      const container = document.getElementById(this._config.containerId);
       if (!container) {
         console.error(
-          `Container with id "${this.config.containerId}" not found`
+          `Container with id "${this._config.containerId}" not found`
         );
         return;
       }
@@ -351,7 +352,7 @@
 
     createPlayer() {
       this.player = new YT.Player(`player-${this.instanceId}`, {
-        videoId: this.config.videoId,
+        videoId: this._config.videoId,
         events: {
           onStateChange: (event) => this.onPlayerStateChange(event),
         },
@@ -361,6 +362,8 @@
     onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.PLAYING) {
         this.startLyricsSync();
+      } else if (event.data === YT.PlayerState.ENDED) {
+        this._config.onVideoEnded?.();
       }
     }
 
@@ -370,7 +373,8 @@
         this.displayLyrics(currentTime);
 
         if (
-          currentTime >= this.config.lyrics[this.config.lyrics.length - 1].time
+          currentTime >=
+          this._config.lyrics[this._config.lyrics.length - 1].time
         ) {
           clearInterval(interval);
         }
@@ -387,7 +391,7 @@
       );
 
       if (lineIndex !== this.currentLineIndex && lineIndex !== -1) {
-        const line = this.config.lyrics[lineIndex];
+        const line = this._config.lyrics[lineIndex];
 
         const lineElement = document.createElement("div");
         lineElement.classList.add("line");
@@ -396,6 +400,7 @@
 
         if (this.currentLineIndex === -1) {
           karaokeBox.classList.add("expand");
+          this._config.onExpand?.();
         }
 
         const lines = lyricsContainer.children;
@@ -408,6 +413,7 @@
 
         setTimeout(() => {
           lineElement.classList.add("highlight");
+          this._config.onLineChange?.(lineIndex, line, lineElement);
         }, 0);
 
         this.currentLineIndex = lineIndex;
@@ -420,8 +426,8 @@
 
     getCurrentLineIndex(currentTime) {
       let currentIndex = -1;
-      for (let i = 0; i < this.config.lyrics.length; i++) {
-        if (this.config.lyrics[i].time <= currentTime) {
+      for (let i = 0; i < this._config.lyrics.length; i++) {
+        if (this._config.lyrics[i].time <= currentTime) {
           currentIndex = i;
         }
       }
