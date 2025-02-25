@@ -62,6 +62,7 @@
         },
         onExpand: config.onExpand,
         onLineChange: config.onLineChange,
+        onVideoPaused: config.onVideoPaused,
         onVideoEnded: config.onVideoEnded,
       };
       this.instanceId = this._config.containerId; // "karaoke-" + Math.random().toString(36).substr(2, 9);
