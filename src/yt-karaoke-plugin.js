@@ -36,7 +36,7 @@
 
   class YouTubeKaraokePlugin {
     constructor(config = {}) {
-      this.version = "1.1.2";
+      this.version = "1.1.3";
       this._config = {
         colors: {
           primaryColor: config.colors?.primaryColor || "#ff69b4",
@@ -363,10 +363,16 @@
     }
 
     onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.PLAYING) {
-        this.startLyricsSync();
-      } else if (event.data === YT.PlayerState.ENDED) {
-        this._config.onVideoEnded?.();
+      switch (event.data) {
+        case YT.PlayerState.PLAYING:
+          this.startLyricsSync();
+          break;
+        case YT.PlayerState.PAUSED:
+          this._config.onVideoPaused?.();
+          break;
+        case YT.PlayerState.ENDED:
+          this._config.onVideoEnded?.();
+          break;
       }
     }
 
